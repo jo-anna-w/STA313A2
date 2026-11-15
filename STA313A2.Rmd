@@ -1,0 +1,351 @@
+---
+title: "STA313A2_boxplots"
+output: pdf_document
+date: "2026-11-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+#install.packages("readxl")
+
+#library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+
+stud_enrol20_25 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/5.%20ElemSec_Enrol_2024-2025_EN.csv")
+stud_enrol15_20 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/5.%20ElemSec_Enrol_2019-2020_EN.csv")
+teacher_elem_enrol20_25 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/9a_Teachers_Admin_ECE_Elem_2024-2025_EN.csv")
+teacher_sec_enrol20_25 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/9b_Teachers_Admin_Sec_2024-2025_EN.csv")
+teacher_elem_enrol15_20 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/9a_Teachers_Admin_ECE_Elem_2019-2020_EN.csv")
+teacher_sec_enrol15_20 <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/9b_Teachers_Admin_Sec_2019-2020_EN.csv")
+
+newa2data <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/ont-school-demo-info%20(2).csv", show_col_types = FALSE)
+head(stud_enrol20_25)
+```
+### Do class sizes affect academic performance directly?
+&nbsp;&nbsp;&nbsp;&nbsp;On April 4, 2019, over a hundred thousand students across Ontario walked out to protest the Ford government’s new education policies, particularly the one that addresses an increase in class sizes (ocufa_web, 2019). 
+
+&nbsp;&nbsp;&nbsp;&nbsp;With larger class sizes, it is harder for the teacher to meet the individual needs of the students in their class. This article looks at school enrolment and teacher population data, along with EQAO scores, to quantify the effects that growth in class size has on a student. While consequences of rise in average class sizes might be able to be seen in the change of grades, it is important to note that not all consequences can be found through numerical data. An increase in class sizes might also have a mental or emotional affect on the students which will be touched on later in the article.
+```{r, echo=FALSE}
+stud_enrol <- bind_rows(stud_enrol15_20, stud_enrol20_25)
+stud_enrol <- stud_enrol[-c(1,2),]
+# dim(stud_enrol)
+#head(stud_enrol)
+ggplot(stud_enrol, aes(x = `Academic Year`, 
+                       y = `Secondary Enrolment - Total Public/Roman Catholic`/10000,
+                       group=1)) + 
+  geom_point() +               
+  geom_line(color = "purple") +
+  #ylim(620000, 670000) +
+  labs(title="Enrolment in Publically Funded Secondary Schools in Ontario",
+       x="Academic Year",
+       y="Total Enrolment in Ten Thousands") +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "grey"),
+    panel.grid.minor = element_line(colour = "grey"))
+```
+*Figure 1: Total enrolment in publicly funded (public and catholic) schools in Ontario from 2017-2018 academic year to 2024-2025 academic year. Line chart shows steady increase with steeper incline in the later years.*
+
+&nbsp;&nbsp;&nbsp;&nbsp;The data showcases how student enrolment at secondary schools across Ontario have increased throughout the years: from 2017 to 2025. Enrolment has always been increasing, but starting in 2020-2021, steeper increases can be seen. The steep incline in secondary student numbers can be worrying if not accompanied by a similar growth in the number of teachers in secondary schools. We decided to take a look and explore how the number of teachers has changed while student enrolment has continued to increase.
+
+### Are there fewer teachers as student enrolment grows?
+
+```{r, echo=FALSE}
+teacher_sec_enrol20_25 <- teacher_sec_enrol20_25[ , -c(1)]
+teacher_sec_enrol <- bind_cols(teacher_sec_enrol15_20, teacher_sec_enrol20_25)
+teacher_sec_enrol <- teacher_sec_enrol[ , -c(1,2,3,4,5,6,7,9,10,12,13,15,16)]
+teach_num2 <- t(teacher_sec_enrol[2,])
+colnames(teach_num2) <- NULL
+
+# head(teacher_elem_enrol20_25)
+teacher_elem_enrol20_25 <- teacher_elem_enrol20_25[ , -c(1)]
+teacher_elem_enrol <- bind_cols(teacher_elem_enrol15_20, teacher_elem_enrol20_25)
+# head(teacher_elem_enrol)
+
+teacher_elem_enrol <- teacher_elem_enrol[ , -c(1,2,3,4,5,6,7,9,10,12,13,15,16)]
+# head(teacher_elem_enrol)
+
+# print(teacher_elem_enrol[2,])
+# print(stud_enrol$`Academic Year`)
+teach_num <- t(teacher_elem_enrol[2,])
+colnames(teach_num) <- NULL
+# print(teach_num)
+
+teacher_elem_numbers <- data.frame(
+  Year = stud_enrol$`Academic Year`,
+  Enrolment = teach_num)
+# head(teacher_elem_numbers)
+
+teacher_sec_numbers <- data.frame(
+  Year = stud_enrol$`Academic Year`,
+  Enrolment = teach_num2)
+
+ggplot(teacher_sec_numbers, aes(x = `Year`, 
+                       y = `Enrolment`,
+                       group=1)) + 
+  annotate("rect", xmin = 3, xmax = 4,
+           ymin = -Inf, ymax = Inf,
+           fill = "grey90") +
+  geom_point() +               
+  geom_line(color = "blue") +
+  ylim(37000, 40000) +
+  labs(title="Number of Educators in Ontario Secondary Schools",
+       x="Academic Year",
+       y="Count") +
+  geom_hline(yintercept = seq(37000, 40000, 500),
+             colour = "darkgrey", linewidth = 0.3) +
+  geom_vline(xintercept = seq(0, 10, 1),
+             colour = "darkgrey", linewidth = 0.3) +
+  annotate("text", x=3.2, y=39000, color="black", label="Early Retirement due to Covid-19", angle=-90) +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "darkgrey"),
+    panel.grid.minor = element_line(colour = "darkgrey")
+  )
+```
+*Figure 2: Educator numbers fluctuated despite growing student enrolment. Number of educators in secondary schools in Ontario from the 2017-2018 academic year to the 2024-2025 academic year.*
+
+&nbsp;&nbsp;&nbsp;&nbsp;We observed from the graph that the number of educators in secondary schools has fluctuated over the years. The Ontario Data Catalogue defines Full-Time Educators (FTEs) as office workers, principals, guidance counselors, in addition to teachers. Due to this definition, and lack of data that focuses solely on teachers, while Figure 2 can give some insight to teacher numbers over these eight years, it is not an exact representation. As seen in Figure 2, the count decreases right before the Covid-19 pandemic and then raises right after. This was due to the Ford government's new class size policy and overall funding changes to education. A lot of contracts either weren't renewed or teachers were encouraged to retire early to avoid being laid off. Additionally, school boards worked to reorganize their staffing over the spring and summer of 2019 to adhere with the new provincial funding which caused those reduced staffing levels seen in Figure 2. So that when schools opened in September 2019 and were captured during the October 31, 2019 OnSIS reporting, there was a decline in FTEs.
+
+&nbsp;&nbsp;&nbsp;&nbsp;While student enrolment has continued to increase, educator numbers have fluctuated. This raises an important question: have staffing levels kept pace with the growing student population? Despite provincial class size caps, some students continue to experience overcrowded classrooms, raising concerns among parents about the quality of individual attention their children receive.
+
+### Parents are growing increasingly concerned.
+&nbsp;&nbsp;&nbsp;&nbsp;Parents of school aged children have begun to worry about how this increase in class sizes, and decrease in one-on-one attention between teacher and student, will affect their child’s academic performance and environment. Some parents are taking interest in private schools due to their “small classes, which sometimes have fewer than half of the number of students in a comparable TDSB class.” Parents looking into private options “have also cited weak academic testing scores in the public school system as a driver.” Although Catholic schools are not equivalent to private schools, comparing public and Catholic school boards provides another perspective on how staffing levels differ across Ontario's publicly funded education system. We therefore examined whether students in these two systems experienced different student-educator ratios.
+
+```{r, echo=FALSE}
+teach_split <- read_csv("https://raw.githubusercontent.com/jo-anna-w/STA313A2/refs/heads/main/teacher_split.csv")
+head(teach_split)
+public_ratio <- stud_enrol$`Secondary Enrolment - Public`/teach_split$Public.Secondary.Educators
+catholic_ratio <- stud_enrol$`Secondary Enrolment - Roman Catholic` / teach_split$Catholic.Secondary.Educators
+ggplot(teach_split, aes(x = `Academic.Year`)) + 
+  annotate("rect", xmin = 3, xmax = 6,
+           ymin = -Inf, ymax = Inf,
+           fill = "grey90") +
+  geom_line(linewidth=1,aes(y = public_ratio,
+                color = "Public"), group = 1) +
+  geom_line(linewidth=1,aes(y = catholic_ratio,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = public_ratio,
+                 color = "Public")) +
+  geom_point(aes(y = catholic_ratio,
+                 color = "Catholic")) +
+  labs(title="Student-Educator Ratio in Secondary Schools",
+       x="Academic Year",
+       y="Ratio") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "darkgrey")) +
+  geom_hline(yintercept = seq(13.75, 14.75, 0.125),
+             colour = "darkgrey", linewidth = 0.3) +
+  geom_vline(xintercept = seq(0, 10, 1),
+             colour = "darkgrey", linewidth = 0.3) +
+  annotate("text", x=4.5, y=14.67, color="black", label="*No data due to Covid-19") +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "lightgrey"),
+    panel.grid.minor = element_line(colour = "lightgrey")
+  )
+```
+*Figure 3: Student-Educator ratio in Ontario publically-funded schools rise following policy on an increase in class sizes across high schools in the province.*
+
+&nbsp;&nbsp;&nbsp;&nbsp;We measured the full-time educator counts by board type across Ontario secondary schools per academic year. Due to the definition of FTEs, we could not calculate an exact student-teacher ratio, however, with Figure 3, we were able to show the student-educator ratio which will reflect the number of total staff available to aid students. 
+Pre-COVID and class size policy, in 2017-2018, an average secondary catholic school will have a student to educator ratio that’s around 13.75:1. At public schools, this ratio would be a bit higher at around 14.4:1, which means an individual would get less one-on-one attention. Post-implementation of the Ford government’s class size policy, which was also post-covid, the ratios increased by approximately one student per educator. On average, at catholic schools, it jumped around from roughly 14.25:1 to closer to 14.75:1 post-covid. At public schools, the ratio was around 14.5:1 and changed to 14.75:1 after the class size policy was introduced.
+
+&nbsp;&nbsp;&nbsp;&nbsp;As seen in Figure 3, data was unavailable for the 2020-2021 and 2021-2022 academic years. Separate data for these two academic years by board type was not available from the same dataset [Number of full-time equivalent educators by gender and school board in Ontario]. This could be due to a delayed response or inaccurate documentation of these metrics due to disruptions caused by the pandemic: finding last minute staff placements, abundance of educators retiring early due to the pandemic, but the footnotes from Statistics Canada do not suggest this.
+
+&nbsp;&nbsp;&nbsp;&nbsp;But did these ratios truly affect a child’s ability to perform academically? Although student-educator ratios provide some insight into the resources available to students, they do not necessarily reflect the number of students in an individual classroom. More importantly, do these differences in staffing translate into measurable differences in academic performance? To investigate this, we examined EQAO and OSSLT results before and after the introduction of the new class size policy.
+
+### How did the EQAO mathematics test scores change?
+## EQAO Grade 9 Math catholic: before & after
+```{r, echo=FALSE}
+df_catholic <- newa2data %>%
+  mutate(
+    year_clean = trimws(as.character(year)),
+    board_clean = trimws(as.character(board_type))
+  ) %>%
+  filter(
+    year_clean %in% c("2018-2019", "2024-2025"),
+    board_clean == "Cath Dist Sch Brd (E/F)"
+  ) %>%
+  mutate(
+    score_1819 = suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(percentage_of_grade_9_students_achieving_the_provincial_standard_in_academic_mathematics)))),
+    score_2425 = suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(percentage_of_grade_9_students_achieving_the_provincial_standard_in_mathematics)))),
+    score_1819 = if (!all(is.na(score_1819)) && max(score_1819, na.rm = TRUE) <= 1) score_1819 * 100 else score_1819,
+    score_2425 = if (!all(is.na(score_2425)) && max(score_2425, na.rm = TRUE) <= 1) score_2425 * 100 else score_2425,
+    score = case_when(
+      year_clean == "2018-2019" ~ score_1819,
+      year_clean == "2024-2025" ~ score_2425
+    )
+  ) %>%
+  filter(!is.na(score)) %>%
+  mutate(
+    year_factor = factor(
+      year_clean,
+      levels = c("2024-2025", "2018-2019"),
+      labels = c("Post-Policy (2024-2025)", "Pre-Policy (2018-2019)")
+    )
+  )
+
+ggplot(df_catholic, aes(
+    x = year_factor,
+    y = score,
+    fill = year_factor
+  )) +
+  geom_boxplot(alpha = 0.8, width = 0.5) +
+  coord_flip(ylim = c(0, 100)) +
+  scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+  scale_fill_manual(
+    values = c("Pre-Policy (2018-2019)" = "palevioletred1", "Post-Policy (2024-2025)" = "palevioletred4")
+  ) +
+  labs(
+    title = "Catholic Schools Grade 9 Mathematics: Pre-Policy vs. Post-Policy",
+    subtitle = "2018-2019 vs. 2024-2025 Math EQAO",
+    x = "School Year",
+    y = "Percentage of Grade 9 Students Achieving Provincial Standard (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+*Figure 4: Percentage of Grade 9 students achieving the provincial standard in Catholic high schools in Ontario pre and post-policy. A decrease of around 30% can be seen for the post-policy compared to pre-policy.*
+
+## EQAO Grade 9 Math public: before & after
+```{r, echo=FALSE}
+df_public <- newa2data %>%
+  mutate(
+    year_clean = trimws(as.character(year)),
+    board_clean = trimws(as.character(board_type))
+  ) %>%
+  filter(
+    year_clean %in% c("2018-2019", "2024-2025"),
+    board_clean == "Pub Dist Sch Brd (E/F)"
+  ) %>%
+  mutate(
+    score_1819 = suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(percentage_of_grade_9_students_achieving_the_provincial_standard_in_academic_mathematics)))),
+    score_2425 = suppressWarnings(as.numeric(gsub("[^0-9.-]", "", as.character(percentage_of_grade_9_students_achieving_the_provincial_standard_in_mathematics)))),
+    score_1819 = if (!all(is.na(score_1819)) && max(score_1819, na.rm = TRUE) <= 1) score_1819 * 100 else score_1819,
+    score_2425 = if (!all(is.na(score_2425)) && max(score_2425, na.rm = TRUE) <= 1) score_2425 * 100 else score_2425,
+    score = case_when(
+      year_clean == "2018-2019" ~ score_1819,
+      year_clean == "2024-2025" ~ score_2425
+    )
+  ) %>%
+  filter(!is.na(score)) %>%
+  mutate(
+    year_factor = factor(
+      year_clean,
+      levels = c("2024-2025", "2018-2019"),
+      labels = c("Post-Policy (2024-2025)", "Pre-Policy (2018-2019)")
+    )
+  )
+
+ggplot(df_public, aes(
+    x = year_factor,
+    y = score,
+    fill = year_factor
+  )) +
+  geom_boxplot(alpha = 0.8, width = 0.5) +
+  coord_flip(ylim = c(0, 100)) +
+  scale_y_continuous(breaks = seq(0, 100, by = 10)) +
+  scale_fill_manual(
+    values = c("Pre-Policy (2018-2019)" = "steelblue1", "Post-Policy (2024-2025)" = "steelblue4")
+  ) +
+  labs(
+    title = "Public Schools Grade 9 Mathematics: Pre-Policy vs. Post-Policy",
+    subtitle = "2018-2019 vs. 2024-2025 Math EQAO",
+    x = "School Year",
+    y = "Percentage of Grade 9 Students Achieving Provincial Standard (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+*Figure 5: Percentage of Grade 9 students achieving provincial standards in Public high schools in Ontario pre and post-policy. A decrease of around 30% can be seen for the post-policy compared to pre-policy.*
+
+## OSSLT boxplots catholic: before & after
+```{r, echo=FALSE}
+df_catholic_osslt <- newa2data %>%
+  filter(
+    year %in% c("2018-2019", "2024-2025"),
+    board_type == "Cath Dist Sch Brd (E/F)",
+    !is.na(percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt)
+  ) %>%
+  mutate(
+    percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt = as.numeric(
+      gsub("%", "", as.character(percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt))
+    ),
+    year = factor(
+      year, 
+      levels = c("2024-2025", "2018-2019"),
+      labels = c("Post-Policy (2024-2025)", "Pre-Policy (2018-2019)")
+    )
+  )
+
+ggplot(df_catholic_osslt, aes(
+    x = year, 
+    y = percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt, 
+    fill = year
+  )) +
+  geom_boxplot(alpha = 0.8, width = 0.5) +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100)) +
+  scale_fill_manual(
+    values = c("Pre-Policy (2018-2019)" = "lightpink", "Post-Policy (2024-2025)" = "lightpink4")
+  ) +
+  labs(
+    title = "Catholic Schools OSSLT First-Attempt Pass Rate: Pre-Policy vs. Post-Policy",
+    x = "School Year",
+    y = "Percentage of Grade 10 students passing OSSLT on first attempt",
+    fill = "School Year"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+*Figure 6: Percentage of Grade 10 students who pass the OSSLT on the first attempt in Catholic schools. An increase of about 5% can be seen for the post-policy compared to pre-policy.*
+
+## OSSLT boxplots public: before & after
+```{r, echo=FALSE}
+df_public <- newa2data %>%
+  filter(
+    year %in% c("2018-2019", "2024-2025"),
+    board_type == "Pub Dist Sch Brd (E/F)",
+    !is.na(percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt)
+  ) %>%
+  mutate(
+    percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt = as.numeric(
+      gsub("%", "", as.character(percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt))
+    ),
+    year = factor(
+      year, 
+      levels = c("2024-2025", "2018-2019"),
+      labels = c("Post-Policy (2024-2025)", "Pre-Policy (2018-2019)")
+    )
+  )
+
+ggplot(df_public, aes(
+    x = year, 
+    y = percentage_of_students_that_passed_the_grade_10_osslt_on_their_first_attempt, 
+    fill = year
+  )) +
+  geom_boxplot(alpha = 0.8, width = 0.5) +
+  coord_flip() +
+  scale_y_continuous(breaks = seq(0, 100, by = 10), limits = c(0, 100)) +
+  scale_fill_manual(
+    values = c("Pre-Policy (2018-2019)" = "lightskyblue1", "Post-Policy (2024-2025)" = "lightskyblue4")
+  ) +
+  labs(
+    title = "Public Schools OSSLT First-Attempt Pass Rate: Pre-Policy vs. Post-Policy",
+    x = "School Year",
+    y = "Percentage of Grade 10 students passing OSSLT on first attempt",
+    fill = "School Year"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "top")
+```
+*Figure 7: Percentage of Grade 10 students who pass the OSSLT on the first attempt in Public schools. An increase of about 6% can be seen for the post-policy compared to pre-policy.*
