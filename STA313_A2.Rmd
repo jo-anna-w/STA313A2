@@ -1,0 +1,336 @@
+---
+title: "STA313_A2"
+output: html_document
+date: "2026-11-11"
+---
+```{r}
+file.choose()
+```
+
+
+
+```{r}
+# 1. Install the package (only needed once)
+install.packages("readxl")
+
+# 2. Load the library
+library(readxl)
+
+# 3. Read the Excel file
+stud_enrol20_25 <- read_excel("/home/rstudio/EN_2024-2025/5. ElemSec_Enrol_2024-2025_EN.xlsx")
+stud_enrol15_20 <- read_excel("/home/rstudio/EN/5. ElemSec_Enrol_2019-2020_EN.xlsx")
+teacher_elem_enrol20_25 <- read_excel("/home/rstudio/EN_2024-2025/9a_Teachers_Admin_ECE_Elem_2024-2025_EN.xlsx")
+teacher_sec_enrol20_25 <- read_excel("/home/rstudio/EN_2024-2025/9b_Teachers_Admin_Sec_2024-2025_EN.xlsx")
+teacher_elem_enrol15_20 <- read_excel("/home/rstudio/EN/9a_Teachers_Admin_ECE_Elem_2019-2020_EN.xlsx")
+teacher_sec_enrol15_20 <- read_excel("/home/rstudio/EN/9b_Teachers_Admin_Sec_2019-2020_EN.xlsx")
+```
+
+```{r}
+head(stud_enrol20_25)
+```
+
+```{r}
+library(dplyr)
+stud_enrol <- bind_rows(stud_enrol15_20, stud_enrol20_25)
+stud_enrol <- stud_enrol[-c(1,2),]
+dim(stud_enrol)
+head(stud_enrol)
+```
+
+```{r}
+library(ggplot2)
+
+#make total elementary and secondary enrolment over time plot
+ggplot(stud_enrol, aes(x = `Academic Year`, 
+                       y = `Total Enrolment - Total Public/Roman Catholic`,
+                       group=1)) + 
+  geom_point() +               
+  geom_line(color = "red") +
+  ylim(2000000, 2100000) +
+  labs(title="Enrolment in Publically Funded Ontario Schools(Elementary and Secondary)",
+       x="Academic Year",
+       y="Total Enrolment")
+```
+
+```{r}
+#make total elementary enrolment over time plot
+ggplot(stud_enrol, aes(x = `Academic Year`, 
+                       y = `Elementary Enrolment - Total Public/Roman Catholic`,
+                       group=1)) + 
+  geom_point() +               
+  geom_line(color = "blue") +
+  ylim(1300000, 1450000) +
+  labs(title="Enrolment in Publically Funded Elementary Schools in Ontario",
+       x="Academic Year",
+       y="Total Enrolment")
+```
+
+```{r}
+#make total elementary enrolment over time plot
+ggplot(stud_enrol, aes(x = `Academic Year`, 
+                       y = `Secondary Enrolment - Total Public/Roman Catholic`/10000,
+                       group=1)) + 
+  geom_point() +               
+  geom_line(color = "purple") +
+  #ylim(620000, 670000) +
+  labs(title="Enrolment in Publically Funded Secondary Schools in Ontario",
+       x="Academic Year",
+       y="Total Enrolment in Ten Thousands") +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "grey"),
+    panel.grid.minor = element_line(colour = "grey"))
+```
+
+```{r}
+#make plot for elementary enrolment, public vs catholic
+ggplot(stud_enrol, aes(x = `Academic Year`)) + 
+  geom_line(aes(y = `Elementary Enrolment - Public`,
+                color = "Public"), group = 1) +
+  geom_line(aes(y = `Elementary Enrolment - Roman Catholic`,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = `Elementary Enrolment - Public`,
+                 color = "Public")) +
+  geom_point(aes(y = `Elementary Enrolment - Roman Catholic`,
+                 color = "Catholic")) +
+  labs(
+    title = "Elementary School Enrolment Over Time",
+    x = "Academic Year",
+    y = "Total Enrolment",
+    color = "School Level") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "grey"
+))
+```
+```{r}
+#make plot for secondary enrolment, public vs catholic
+ggplot(stud_enrol, aes(x = `Academic Year`)) + 
+  geom_line(aes(y = `Secondary Enrolment - Public`,
+                color = "Public"), group = 1) +
+  geom_line(aes(y = `Secondary Enrolment - Roman Catholic`,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = `Secondary Enrolment - Public`,
+                 color = "Public")) +
+  geom_point(aes(y = `Secondary Enrolment - Roman Catholic`,
+                 color = "Catholic")) +
+  labs(
+    title = "Secondary School Enrolment Over Time",
+    x = "Academic Year",
+    y = "Total Enrolment",
+    color = "School Level") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "grey"
+))
+```
+
+```{r}
+#make plot for secondary enrolment, public vs catholic
+ggplot(stud_enrol, aes(x = `Academic Year`)) + 
+  geom_line(aes(y = `Secondary Enrolment - Public`/421945,
+                color = "Public"), group = 1) +
+  geom_line(aes(y = `Secondary Enrolment - Roman Catholic`/206030,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = `Secondary Enrolment - Public`/421945,
+                 color = "Public")) +
+  geom_point(aes(y = `Secondary Enrolment - Roman Catholic`/206030,
+                 color = "Catholic")) +
+  labs(
+    title = "Change in Secondary School Enrolment",
+    x = "Academic Year",
+    y = "Proportion of Enrolemnt in 2017-2018",
+    color = "School Level") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "grey"
+))
+```
+
+```{r}
+head(teacher_elem_enrol20_25)
+teacher_elem_enrol20_25 <- teacher_elem_enrol20_25[ , -c(1)]
+teacher_elem_enrol <- bind_cols(teacher_elem_enrol15_20, teacher_elem_enrol20_25)
+head(teacher_elem_enrol)
+```
+
+```{r}
+teacher_elem_enrol <- teacher_elem_enrol[ , -c(1,2,3,4,5,6,7,9,10,12,13,15,16)]
+head(teacher_elem_enrol)
+```
+
+```{r}
+print(teacher_elem_enrol[2,])
+print(stud_enrol$`Academic Year`)
+teach_num <- t(teacher_elem_enrol[2,])
+colnames(teach_num) <- NULL
+print(teach_num)
+
+teacher_elem_numbers <- data.frame(
+  Year = stud_enrol$`Academic Year`,
+  Enrolment = teach_num)
+head(teacher_elem_numbers)
+```
+```{r}
+ggplot(teacher_elem_numbers, aes(x = `Year`, 
+                       y = `Enrolment`,
+                       group=1)) + 
+  geom_point() +               
+  geom_line(color = "blue") +
+  ylim(75000, 78000) +
+  labs(title="Number of Educators in Ontario Elementary Schools",
+       x="Academic Year",
+       y="Count") +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "grey"),
+    panel.grid.minor = element_line(colour = "grey")
+  )
+```
+```{r}
+teacher_sec_enrol20_25 <- teacher_sec_enrol20_25[ , -c(1)]
+teacher_sec_enrol <- bind_cols(teacher_sec_enrol15_20, teacher_sec_enrol20_25)
+```
+
+```{r}
+teacher_sec_enrol <- teacher_sec_enrol[ , -c(1,2,3,4,5,6,7,9,10,12,13,15,16)]
+```
+
+```{r}
+teach_num2 <- t(teacher_sec_enrol[2,])
+colnames(teach_num2) <- NULL
+
+teacher_sec_numbers <- data.frame(
+  Year = stud_enrol$`Academic Year`,
+  Enrolment = teach_num2)
+```
+
+```{r}
+ggplot(teacher_sec_numbers, aes(x = `Year`, 
+                       y = `Enrolment`,
+                       group=1)) + 
+  annotate("rect", xmin = 3, xmax = 4,
+           ymin = -Inf, ymax = Inf,
+           fill = "grey90") +
+  geom_point() +               
+  geom_line(color = "blue") +
+  ylim(37000, 40000) +
+  labs(title="Number of Educators in Ontario Secondary Schools",
+       x="Academic Year",
+       y="Count") +
+  geom_hline(yintercept = seq(37000, 40000, 500),
+             colour = "darkgrey", linewidth = 0.3) +
+  geom_vline(xintercept = seq(0, 10, 1),
+             colour = "darkgrey", linewidth = 0.3) +
+  annotate("text", x=3.2, y=39000, color="black", label="Early Retirement due to Covid-19", angle=-90) +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "darkgrey"),
+    panel.grid.minor = element_line(colour = "darkgrey")
+  )
+```
+```{r}
+teach_split <- read.csv("/home/rstudio/teacher_split.csv")
+head(teach_split)
+```
+```{r}
+#make teacher numbers for public and catholic
+#missing data points because of administrative overload during covid
+ggplot(teach_split, aes(x = `Academic.Year`)) + 
+  geom_line(aes(y = `Public.Secondary.Educators`,
+                color = "Public"), group = 1) +
+  geom_line(aes(y = `Catholic.Secondary.Educators`,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = `Public.Secondary.Educators`,
+                 color = "Public")) +
+  geom_point(aes(y = `Catholic.Secondary.Educators`,
+                 color = "Catholic")) +
+  labs(title="Number of Teachers in Ontario Secondary Schools",
+       x="Academic Year",
+       y="Count") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "grey"
+))
+```
+```{r}
+#make teacher numbers for public and catholic, normalized
+#missing data points because of administrative overload during covid
+ggplot(teach_split, aes(x = `Academic.Year`)) + 
+  geom_line(aes(y = `Public.Secondary.Educators`/29318,
+                color = "Public"), group = 1) +
+  geom_line(aes(y = `Catholic.Secondary.Educators`/14912,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = `Public.Secondary.Educators`/29318,
+                 color = "Public")) +
+  geom_point(aes(y = `Catholic.Secondary.Educators`/14912,
+                 color = "Catholic")) +
+  labs(title="Number of Teachers in Ontario Secondary Schools",
+       x="Academic Year",
+       y="Count") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "black")) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "grey"),
+    panel.grid.minor = element_line(colour = "grey")
+  )
+```
+
+```{r}
+#make student-teacher ratio columns
+public_ratio <- stud_enrol$`Secondary Enrolment - Public`/teach_split$Public.Secondary.Educators
+catholic_ratio <- stud_enrol$`Secondary Enrolment - Roman Catholic` / teach_split$Catholic.Secondary.Educators
+```
+
+```{r}
+#make student teach ratios for public and catholic
+#missing data points because of administrative overload during covid
+ggplot(teach_split, aes(x = `Academic.Year`)) + 
+  annotate("rect", xmin = 3, xmax = 6,
+           ymin = -Inf, ymax = Inf,
+           fill = "grey90") +
+  geom_line(linewidth=1,aes(y = public_ratio,
+                color = "Public"), group = 1) +
+  geom_line(linewidth=1,aes(y = catholic_ratio,
+                color = "Catholic"), group = 1) +
+  geom_point(aes(y = public_ratio,
+                 color = "Public")) +
+  geom_point(aes(y = catholic_ratio,
+                 color = "Catholic")) +
+  labs(title="Student-Educator Ratio in Secondary Schools",
+       x="Academic Year",
+       y="Ratio") +
+  scale_color_manual(values = c(
+  "Public" = "skyblue",
+  "Catholic" = "darkgrey")) +
+  geom_hline(yintercept = seq(13.75, 14.75, 0.125),
+             colour = "darkgrey", linewidth = 0.3) +
+  geom_vline(xintercept = seq(0, 10, 1),
+             colour = "darkgrey", linewidth = 0.3) +
+  annotate("text", x=4.5, y=14.67, color="black", label="*No data due to Covid-19") +
+  guides(x = guide_axis(angle = 45)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_line(colour = "lightgrey"),
+    panel.grid.minor = element_line(colour = "lightgrey")
+  )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
